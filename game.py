@@ -1,5 +1,6 @@
 import pygame,random,time
 
+import functions
 from player import Player
 from obstacles import moving_obstacle
 from obstacles import fixed_obstacle
@@ -55,7 +56,7 @@ end = font.render("END", True, (0, 0, 0))
 
 
 
-score1 =  0
+score1 = 0
 score2 = 0
 font = pygame.font.SysFont("comicsansms", 50)
 Score1 = font.render('player1 : ' + str(score1), True, (0, 0, 0))
@@ -74,23 +75,45 @@ all_fixed_obs = pygame.sprite.Group()
 for j in range (1,5):
     for i in range(0,5):
         fobs = fixed_obstacle(Black, 50, 50)
-        fobs.rect.x = 80 + (i * 200)  
+        fobs.rect.x = 80 + (i * 220)  
         fobs.rect.y = 0 + (j * 150)
         all_fixed_obs.add(fobs)
         all_sprites_list.add(fobs)
 
 #moving_objects
 
-all_coming_obs = pygame.sprite.Group()
+all_coming_obs1 = pygame.sprite.Group()
+all_coming_obs2 = pygame.sprite.Group()
+all_coming_obs3 = pygame.sprite.Group()
+
 
 for j in range (0,6):
-    for i in range (random.randint(1,3),random.randint(6,8)):
-        mobs = moving_obstacle(random.choice(colorList), 80, 60,20)
+    for i in range (random.randint(1,3),random.randint(5,6)):
+        mobs = moving_obstacle(random.choice(colorList), 80,60, 20)
         mobs.rect.x = 0 +  i * 250
         mobs.rect.y = 60 + j * 150
 
-        all_sprites_list.add(mobs)
-        all_coming_obs.add(mobs)
+        #all_sprites_list.add(mobs)
+        all_coming_obs1.add(mobs)
+
+
+for j in range (0,6):
+    for i in range (random.randint(1,3),random.randint(5,6)):
+        mobs = moving_obstacle(random.choice(colorList), 80, 60,50)
+        mobs.rect.x = 0 +  i * 250
+        mobs.rect.y = 60 + j * 150
+
+        #all_sprites_list.add(mobs)
+        all_coming_obs2.add(mobs)
+
+for j in range (0,6):
+    for i in range (random.randint(1,3),random.randint(5,6)):
+        mobs = moving_obstacle(random.choice(colorList), 80, 60,80)
+        mobs.rect.x = 0 +  i * 250
+        mobs.rect.y = 60 + j * 150
+
+        #all_sprites_list.add(mobs)
+        all_coming_obs3.add(mobs)
 
 
 #crashed message
@@ -108,19 +131,44 @@ def message_display(text):
     pygame.display.flip()
 
     time.sleep(2)  
+    if player == player1:
+        gameloop()      
 
-    gameloop()      
 
-def crash():
-    message_display('You Crashed')
+def Round():
+    screen.fill(Black)
+    font = pygame.font.Font('freesansbold.ttf',100)
+    if count == 0:
+        text = 'Round1'
+    if count == 2:
+        text = 'Round2'
+    elif count == 4:
+        text = 'Round3'
+
+    Round = font.render(text,True,WHITE)
+    
+    screen.blit(Round,(330,350))
+       
+    
+    pygame.display.flip()
+    time.sleep(2)
 
     gameloop()
+
+
+
+def Gameover():
+    quit()
 
 speed = 1
 f = 1
 player  = player1
 score1 = 0
 score2 = 0
+count = 0
+round_score1 = 0
+round_score2 = 0
+
 #game
 def gameloop():
 
@@ -128,6 +176,9 @@ def gameloop():
     global player
     global score1
     global score2
+    global count
+
+  
 
     if f == 1:
         f = 0
@@ -151,6 +202,18 @@ def gameloop():
     f = 0
 
     q = False
+    
+    count = count + 1
+    if  count == 1 or count == 2:
+        all_coming_obs = all_coming_obs1
+    elif count == 3 or count == 4:
+        all_coming_obs = all_coming_obs2
+    elif count == 5 or count == 6:
+        all_coming_obs = all_coming_obs3
+    
+    else:
+        #test()
+        quit()
 
     while not q:
      
@@ -181,25 +244,27 @@ def gameloop():
         
         if xm >=50 and xf >=200:
             xf = 0       
-            score1 = score1 + 5   
+            score1 = score1 + 5
+          
             print(score1)      
            
 
         if xm >= 150:                    
             score1 = score1 + 10
+            
             xm = 0
             print(score1)
            
 
         if xm <= -150:
             score2 = score2 + 10
+           
             xm = 0
         
         if xm <= -50 and xf <=-200:
             xf = 0       
             score2 = score2 + 5  
         
-
         screen.fill(WHITE)
 
         
@@ -227,6 +292,10 @@ def gameloop():
 
             else:
                 message_display('player2 crashed')
+                if count == 6:
+                    Gameover()
+                else:
+                    Round()  
 
         fixed_collision_list = pygame.sprite.spritecollide(player,all_fixed_obs,False)
         for obs in fixed_collision_list:
@@ -236,9 +305,14 @@ def gameloop():
 
             else:
                 message_display('player2 crashed')
-                
+                if count == 6:
+                    Gameover()
+                else:
+                    Round()            
 
         all_sprites_list.draw(screen)
+        all_coming_obs.draw(screen)
+        
 
         Score1 = font.render('player1 : ' + str(score1), True, (0, 0, 0))
         Score2 = font.render('player2 : ' + str(score2), True, (0, 0, 0))
@@ -249,12 +323,18 @@ def gameloop():
 
         if player == player1:
             if player1.rect.y <= 1:
+                score1  = score1 + 10
                 message_display('you win')
             screen.blit(start,(0 , 800-start.get_height() ))
             screen.blit(end,(0, 50-end.get_height() ))
         elif player == player2:
             if player2.rect.y >= 760:
+                score2 = score2 + 10
                 message_display('player2 win')
+                if count == 6:
+                    Gameover()
+                else:
+                    Round()  
             screen.blit(end,(0 , display_height-40))
             screen.blit(start,(0 ,0 ))
 
@@ -268,6 +348,8 @@ def gameloop():
         pygame.display.update()
         clock.tick(60)
 
+
+Round()
 gameloop()
 pygame.quit()
 quit()
